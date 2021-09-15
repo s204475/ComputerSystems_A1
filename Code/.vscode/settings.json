@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "cbmp.h": "c",
+        "stdio.h": "c"
+    }
+}
