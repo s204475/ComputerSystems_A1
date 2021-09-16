@@ -1,8 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "cbmp.h"
-
-//To compile: gcc cbmp.c Algorithm.c -o .\Algorithm.exe -std=c99
+//Wall = warning all
+//To compile: gcc cbmp.c Algorithm.c -o .\Algorithm.exe -std=c99 -Wall
 //To run: .\Algorithm.exe .\samples\easy\1EASY.bmp .\samples\easy\1EASYoutErosion2.bmp
 
 //Array to store the image (unsigned char = unsigned 8 bit)
