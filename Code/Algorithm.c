@@ -1,30 +1,40 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include "cbmp.h"
 //Wall = warning all
 //To compile: gcc cbmp.c Algorithm.c -o .\Algorithm.exe -std=c99 -Wall
-//To run: .\Algorithm.exe .\samples\easy\1EASY.bmp .\samples\easy\1EASYoutErosion2.bmp
+//To run: .\Algorithm.exe .\samples\easy\1EASY.bmp .\samples\easy\1EASYOutErosionTest.bmp
 
 //Array to store the image (unsigned char = unsigned 8 bit)
 unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
 unsigned char output_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
-int treshold_value = 90;
+int treshold_value = 110;
 int countedCells = 0;
+int totalErosions = 0;
 int structuring_element[3][3] = {
     {0, 1, 0},
     {1, 1, 1},
     {0, 1, 0}};
-int neighbours[2][4] = {
+int neighbours[4][2] = {
     {0, -1},
     {0, 1},
     {-1, 0},
-    {1, 0}}
-/*int alt_structuring_element[4] = {
-    {1, 0},
-    {0,1},
-    {2,1},
-    {1,2}
-    };*/
+    {1, 0}};
+
+//For each loop over array. Courtesy of https://stackoverflow.com/a/400970/16341756
+//Can't get it to work
+/*
+#define foreach(item, array) \
+    for(int keep = 1, \
+            count = 0,\
+            size = sizeof (array) / sizeof *(array); \
+        keep && count != size; \
+        keep = !keep, count++) \
+      for(item = (array) + count; keep; keep = !keep)
+
+#define array_elements(arr) ( sizeof(arr) / sizeof(arr[0]) )
+#define array_for(item, array)	for(unsigned int cont=1, i=0; i<array_elements(array); cont=1, i++) for(item=&(array)[i]; cont; cont=0) /*
 
 /*this is in the cbmp.h file, but listed here for reference
 void read_bitmap(char *input_file_path,
@@ -60,6 +70,7 @@ void binary_threshold(unsigned char image[BMP_WIDTH][BMP_HEIGTH])
     }
 }
 
+//unused right now. Output_image directly modified in increment cell count
 void image_to_3d(unsigned char image[BMP_WIDTH][BMP_HEIGTH])
 {
     for (int x = 0; x < BMP_WIDTH; x++)
@@ -95,16 +106,42 @@ int inside_bounds(int x, int y)
 
 int increment_cell_count(unsigned char image[BMP_WIDTH][BMP_HEIGTH], int x, int y)
 {
-    for (int x = 0; x < 3; x++)
+    //for strucuring element
+    /*for (int i = 0; i < 4; i++)
     {
-        for (int y = 0; y < 3; y++)
+
+        if (inside_bounds(x + neighbours[i][0], y + neighbours[i][1]) == 1 && image[x + neighbours[i][0]][y + neighbours[i][1]] == 1)
         {
-            if (inside_bounds(x, y) == 1)
+            return 0;
+        }
+    }*/
+
+    //checking all neighbours
+    for (int xx = -3; xx < 4; xx++)
+    {
+        for (int yy = -3; yy < 4; yy++)
+        {
+            if (output_image[x][y][0] == 255 || (inside_bounds(x + xx, y + yy) == 1 && image[x + xx][y + yy] == 1))
             {
-                if (image[x][y] == 1)
-                {
-                    return 0;
-                }
+                return 0;
+            }
+        }
+    }
+
+    //mark the cell
+    for (int rgb = 0; rgb < 3; rgb++)
+    {
+        output_image[x][y][rgb] = 255;
+    }
+
+    //marks the pixels around
+    for (int xx = -3; xx < 4; xx++)
+    {
+        for (int yy = -3; yy < 4; yy++)
+        {
+            if (inside_bounds(x + xx, y + yy))
+            {
+                output_image[x + xx][y + yy][0] = 244;
             }
         }
     }
@@ -112,37 +149,51 @@ int increment_cell_count(unsigned char image[BMP_WIDTH][BMP_HEIGTH], int x, int 
     return 1;
 }
 
-int structuring_element_check(int x, int y)
+//Iterates over the image. If it finds a white pixel, it checks the four neighbours directly above, below, left and right
+//and if any are black, it itself becomes black. It then increments if there are no other sorrounding white pixels at all.
+void erosion(unsigned char image[BMP_WIDTH][BMP_HEIGTH])
 {
-    if(image[x][y+1]==0 )
+    int erosionsTics = 1;
+    while (erosionsTics > 0)
     {
-        
-    }
-}
-
-void erosion(unsigned char image[BMP_WIDTH][BMP_HEIGTH], int numberOfErosions)
-{
-    for (int i = 0; i < numberOfErosions; i++)
-    {
+        totalErosions++;
+        erosionsTics = 0;
         for (int x = 0; x < BMP_WIDTH; x++)
         {
             for (int y = 0; y < BMP_HEIGTH; y++)
             {
                 if (image[x][y] == 1)
                 {
-                    /*
-                    for (int structX = -1; structX < 2; structX++)
+                    int count = 0;
+                    for (int i = 0; i < 4; i++)
                     {
-                        for (int structY = -1; structY < 2; structY++)
+                        if (inside_bounds(x + neighbours[i][0], y + neighbours[i][1]) == 1 && image[x + neighbours[i][0]][y + neighbours[i][1]] == 1)
                         {
-                            if (inside_bounds(x + structX, y + structY))
-                            {
-                                tempArr[x][y] = image[x][y];
-                            }
+                            count++;
                         }
                     }
-                    */
+
+                    if (count != 4)
+                    {
+                        image[x][y] = 0;
+                        erosionsTics++;
+                        countedCells += increment_cell_count(image, x, y);
+                    }
                 }
+            }
+        }
+    }
+}
+
+void outputEqualsInput()
+{
+    for (int x = 0; x < BMP_WIDTH; x++)
+    {
+        for (int y = 0; y < BMP_HEIGTH; y++)
+        {
+            for (int rgb = 0; rgb < 3; rgb++)
+            {
+                output_image[x][y][rgb] = input_image[x][y][rgb];
             }
         }
     }
@@ -159,6 +210,7 @@ int main(int nPassedArguments, char **args)
 
     //read file
     read_bitmap(args[1], input_image);
+    outputEqualsInput();
 
     //greyscale image
     unsigned char grey_image[BMP_WIDTH][BMP_HEIGTH];
@@ -166,14 +218,22 @@ int main(int nPassedArguments, char **args)
 
     binary_threshold(grey_image);
 
-    erosion(grey_image, 9);
+    erosion(grey_image);
 
-    image_to_3d(grey_image);
+    //image_to_3d(grey_image);
+
+    //set output path by removing .bmp from the input, adding counted cells and .bmp again
+    //char **outputPath = "";
+    //strncpy(outputPath,args[1],strlen(args[1])-4);
+    //int intLength = snprintf( NULL, 0, "%d", countedCells);
+    //snprintf(outputPath, intLength, "%d", countedCells);
+    //strncat(outputPath, ".bmp", 4);
 
     //create bmp file
     write_bitmap(output_image, args[2]);
 
-    fprintf(stderr, "Cell count: %d", countedCells);
+    fprintf(stderr, "Cell count: %d \n", countedCells);
+    fprintf(stderr, "Total erosions: %d", totalErosions);
 
     return 0;
 }
