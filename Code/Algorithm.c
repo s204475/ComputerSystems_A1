@@ -4,7 +4,7 @@
 #include "cbmp.h"
 //Wall = warning all
 //To compile: gcc cbmp.c Algorithm.c -o .\Algorithm.exe -std=c99 -Wall
-//To run: .\Algorithm.exe .\samples\easy\2EASY.bmp .\samples\easy\2EASYOutErosionTest.bmp
+//To run: .\Algorithm.exe .\samples\easy\3EASY.bmp .\samples\easy\3EASYOutErosionTest.bmp
 
 //Array to store the image (unsigned char = unsigned 8 bit)
 unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
