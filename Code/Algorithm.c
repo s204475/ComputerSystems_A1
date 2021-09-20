@@ -4,7 +4,7 @@
 #include "cbmp.h"
 //Wall = warning all
 //To compile: gcc cbmp.c Algorithm.c -o .\Algorithm.exe -std=c99 -Wall
-//To run: .\Algorithm.exe .\samples\easy\1EASY.bmp .\samples\easy\1EASYOutErosionTest.bmp
+//To run: .\Algorithm.exe .\samples\easy\2EASY.bmp .\samples\easy\2EASYOutErosionTest.bmp
 
 //Array to store the image (unsigned char = unsigned 8 bit)
 unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
@@ -12,34 +12,15 @@ unsigned char output_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
 int treshold_value = 110;
 int countedCells = 0;
 int totalErosions = 0;
-int structuring_element[3][3] = {
+/*int structuring_element[3][3] = {
     {0, 1, 0},
     {1, 1, 1},
-    {0, 1, 0}};
+    {0, 1, 0}};*/
 int neighbours[4][2] = {
     {0, -1},
     {0, 1},
     {-1, 0},
     {1, 0}};
-
-//For each loop over array. Courtesy of https://stackoverflow.com/a/400970/16341756
-//Can't get it to work
-/*
-#define foreach(item, array) \
-    for(int keep = 1, \
-            count = 0,\
-            size = sizeof (array) / sizeof *(array); \
-        keep && count != size; \
-        keep = !keep, count++) \
-      for(item = (array) + count; keep; keep = !keep)
-
-#define array_elements(arr) ( sizeof(arr) / sizeof(arr[0]) )
-#define array_for(item, array)	for(unsigned int cont=1, i=0; i<array_elements(array); cont=1, i++) for(item=&(array)[i]; cont; cont=0) /*
-
-/*this is in the cbmp.h file, but listed here for reference
-void read_bitmap(char *input_file_path,
-                 unsigned char output_image_array[BMP_WIDTH]
-                                                 [BMP_HEIGTH][BMP_CHANNELS]);*/
 
 void grey_scale_image(unsigned char image[BMP_WIDTH][BMP_HEIGTH], unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS])
 {
@@ -70,7 +51,7 @@ void binary_threshold(unsigned char image[BMP_WIDTH][BMP_HEIGTH])
     }
 }
 
-//unused right now. Output_image directly modified in increment cell count
+//unused right now. Output_image is directly modified in increment cell count
 void image_to_3d(unsigned char image[BMP_WIDTH][BMP_HEIGTH])
 {
     for (int x = 0; x < BMP_WIDTH; x++)
@@ -106,15 +87,6 @@ int inside_bounds(int x, int y)
 
 int increment_cell_count(unsigned char image[BMP_WIDTH][BMP_HEIGTH], int x, int y)
 {
-    //for strucuring element
-    /*for (int i = 0; i < 4; i++)
-    {
-
-        if (inside_bounds(x + neighbours[i][0], y + neighbours[i][1]) == 1 && image[x + neighbours[i][0]][y + neighbours[i][1]] == 1)
-        {
-            return 0;
-        }
-    }*/
 
     //checking all neighbours
     for (int xx = -3; xx < 4; xx++)
