@@ -1,10 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <math.h>
 #include "cbmp.h"
 //Wall = warning all
 //To compile: gcc cbmp.c Algorithm.c -o .\Algorithm.exe -std=c99 -Wall
-//To run: .\Algorithm.exe .\samples\easy\3EASY.bmp .\samples\easy\3EASYOutErosionTest.bmp
+//To run: .\Algorithm.exe .\samples\hard\4HARD.bmp .\samples\hard\4HARDOutErosionTest.bmp
 
 //Array to store the image (unsigned char = unsigned 8 bit)
 unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
@@ -12,6 +13,7 @@ unsigned char output_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
 int treshold_value = 110;
 int countedCells = 0;
 int totalErosions = 0;
+double NCCRequirement = 0.295;
 /*int structuring_element[3][3] = {
     {0, 1, 0},
     {1, 1, 1},
@@ -21,6 +23,35 @@ int neighbours[4][2] = {
     {0, 1},
     {-1, 0},
     {1, 0}};
+
+//pattern recognition element
+//alternative pattern could be less of a circle or 20 by 20
+int ARRAY_CELL_SIZE = 21;
+int cell_pattern[21][21] = {
+    {0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0},
+    {0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0},
+    {0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0},
+    {0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0},
+    {0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0},
+    {0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0},
+    {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
+    {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
+    {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
+    {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
+    {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
+    {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
+    {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
+    {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
+    {1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1},
+    {0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0},
+    {0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0},
+    {0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0},
+    {0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0},
+    {0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0},
+    {0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0},
+};
+
+
 
 void grey_scale_image(unsigned char image[BMP_WIDTH][BMP_HEIGTH], unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS])
 {
@@ -147,6 +178,7 @@ void erosion(unsigned char image[BMP_WIDTH][BMP_HEIGTH])
 
                     if (count != 4)
                     {
+                        //should not edit the image yet
                         image[x][y] = 0;
                         erosionsTics++;
                         countedCells += increment_cell_count(image, x, y);
@@ -156,6 +188,60 @@ void erosion(unsigned char image[BMP_WIDTH][BMP_HEIGTH])
         }
     }
 }
+
+// **** Pattern search start
+double get_templateLength(double templateLength)
+{
+    for(int cellx = 0; cellx<ARRAY_CELL_SIZE;cellx++)
+    {
+        for(int celly = 0; celly<ARRAY_CELL_SIZE;celly++)
+        {
+            templateLength += (cell_pattern[cellx][celly])^2;
+        }
+    }
+    templateLength = sqrt(templateLength);
+    return templateLength;
+}
+
+double use_pattern(unsigned char image[BMP_WIDTH][BMP_HEIGTH], int x, int y, double templateLength)
+{
+    int sum = 0;
+    double patchLength = 0;
+    for(int cellx = 0; cellx<ARRAY_CELL_SIZE;cellx++)
+    {
+        for(int celly = 0; celly<ARRAY_CELL_SIZE;celly++)
+        {
+            if(inside_bounds(x+cellx,y+celly) && image[x+cellx][y+celly] == 1)
+            {
+                sum+=image[x+cellx][y+celly]*cell_pattern[cellx][celly];
+                patchLength += (image[x+cellx][y+celly])^2;
+            }
+        }
+    }
+    patchLength = sqrt(patchLength);
+
+    double NCC = sum/(patchLength*templateLength);
+    return  NCC;
+}
+
+void pattern_search(unsigned char image[BMP_WIDTH][BMP_HEIGTH])
+{
+    double templateLength = 0;
+    templateLength = get_templateLength(templateLength);
+
+    for(int x = 0; x<BMP_WIDTH;x++)
+    {
+        for(int y = 0; y<BMP_HEIGTH;y++)
+        {
+            if (use_pattern(image,x,y,templateLength) > NCCRequirement)
+            {
+                countedCells++;
+            }
+        }
+    }
+}
+// *** Pattern serach end
+
 
 void outputEqualsInput()
 {
@@ -190,6 +276,9 @@ int main(int nPassedArguments, char **args)
 
     binary_threshold(grey_image);
 
+    pattern_search(grey_image);
+    printf(stderr, "Cell count ussing patterns: %d \n", countedCells);
+
     erosion(grey_image);
 
     //image_to_3d(grey_image);
@@ -204,7 +293,7 @@ int main(int nPassedArguments, char **args)
     //create bmp file
     write_bitmap(output_image, args[2]);
 
-    fprintf(stderr, "Cell count: %d \n", countedCells);
+    fprintf(stderr, "Cell count using erosion: %d \n", countedCells);
     fprintf(stderr, "Total erosions: %d", totalErosions);
 
     return 0;
