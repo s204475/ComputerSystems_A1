@@ -16,7 +16,8 @@
 //Array to store the image (unsigned char = unsigned 8 bit)
 unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
 unsigned char output_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
-int treshold_value = 120;
+unsigned char coordinates[BMP_WIDTH][BMP_HEIGTH];
+int treshold_value = 100;
 int countedCells = 0;
 int totalErosions = 0;
 double NCCRequirement = 0.295;
@@ -130,39 +131,37 @@ int inside_bounds(int x, int y)
     }
 }
 
-int increment_cell_count(unsigned char image[BMP_WIDTH][BMP_HEIGTH], int x, int y)
+mark_cell(int x, int y)
 {
+    coordinates[x][y] = 1;
 
-    //checking all neighbours, if no whites then i continues
-    for (int i = 0; i < 8; i++)
+    output_image[x][y][0] = 255;
+
+    //marks the pixels around in a cross
+    for (int i = 0; i < 4; i++)
     {
-        if (output_image[x][y][0] == 255 || (inside_bounds(x + all_neighbours[i][0], y + all_neighbours[i][1]) == 1 && image[x + all_neighbours[i][0]][y + all_neighbours[i][1]] == 1))
+        if (inside_bounds(x + neighbours[i][0], y + neighbours[i][1]) == 1)
         {
-            return 0;
-        }
-    }
-
-    //mark the cell
-    if (image[x][y] == 1)
-    {
-        output_image[x][y][0] = 255;
-
-        /*marks the pixels around
-    for (int xx = -3; xx < 4; xx++)
-    {
-        for (int yy = -3; yy < 4; yy++)
-        {
-            if (inside_bounds(x + xx, y + yy))
+            for (int rgb = 0; rgb < 3; rgb++)
             {
-                output_image[x + xx][y + yy][0] = 244;
+                output_image[x + neighbours[i][0]][y + neighbours[i][1]][rgb];
             }
         }
-    }*/
-
-        return 1;
-    } else{
-        return 0;
     }
+}
+
+int capture_cells(unsigned char image[BMP_WIDTH][BMP_HEIGTH])
+{
+    //mark the cell
+    for (int x = 0; x < BMP_WIDTH; x++)
+    {
+        for (int y = 0; y < BMP_HEIGTH; y++)
+        {
+            //if requirement is met
+            mark_cell(x, y);
+        }
+    }
+    
 }
 
 //Iterates over the image. If it finds a white pixel, it checks the four neighbours directly above, below, left and right
@@ -170,11 +169,11 @@ int increment_cell_count(unsigned char image[BMP_WIDTH][BMP_HEIGTH], int x, int 
 void erosion(unsigned char image[BMP_WIDTH][BMP_HEIGTH])
 {
     unsigned char nextImage[BMP_WIDTH][BMP_HEIGTH];
-    char erosionsTics = 1;
-    while (erosionsTics == 1)
+    int erosionsTics = 1;
+    while (totalErosions < 8)
     {
         totalErosions++;
-        erosionsTics = 0;
+        //erosionsTics = 0;
         for (int x = 0; x < BMP_WIDTH; x++)
         {
             for (int y = 0; y < BMP_HEIGTH; y++)
@@ -194,7 +193,7 @@ void erosion(unsigned char image[BMP_WIDTH][BMP_HEIGTH])
                     {
                         //edits image for next iterations
                         nextImage[x][y] = 0;
-                        erosionsTics = 1;
+                        erosionsTics += 1;
                         countedCells += increment_cell_count(image, x, y);
                     }
                     else
@@ -213,6 +212,17 @@ void erosion(unsigned char image[BMP_WIDTH][BMP_HEIGTH])
                 image[x][y] = nextImage[x][y];
             }
         }
+
+        //desperate fix
+        for (int x = BMP_WIDTH - 3; x < BMP_WIDTH; x++)
+        {
+            for (int y = 0; y < BMP_HEIGTH; y++)
+            {
+                image[x][y] = 0;
+            }
+        }
+
+        capture_cells(image);
     }
 }
 
@@ -288,6 +298,25 @@ void outputEqualsInput()
     }
 }
 
+char* get_coordinates()
+{
+    char* coordinates_string = "";
+    for (int x = 0; x < BMP_WIDTH; x++)
+    {
+        for (int y = 0; y < BMP_HEIGTH; y++)
+        {
+            if(coordinates[x][y] == 1)
+            {
+                sprintf(coordinates_string, "%s %d", coordinates_string, x);
+                strcat(coordinates_string, ",");
+                sprintf(coordinates_string, "%s %d", coordinates_string, y);
+                strcat(coordinates_string, " ");
+            } 
+        }
+        strcat(coordinates_string, "\n");
+    }
+}
+
 int main(int nPassedArguments, char **args)
 {
 
@@ -315,7 +344,7 @@ int main(int nPassedArguments, char **args)
 
     erosion(grey_image);
 
-    //image_to_3d(grey_image);
+    image_to_3d(grey_image);
 
     //set output path by removing .bmp from the input, adding counted cells and .bmp again
     //char **outputPath = "";
@@ -329,7 +358,9 @@ int main(int nPassedArguments, char **args)
 
     fprintf(stderr, "Cell count using erosion: %d \n", countedCells);
 
-    fprintf(stderr, "Total erosions: %d", totalErosions);
+    fprintf(stderr, "Total erosions: %d \n", totalErosions);
+
+    fprintf(stderr,"Coordinates: \n", get_coordinates);
 
     return 0;
 }
