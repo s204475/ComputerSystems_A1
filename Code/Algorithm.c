@@ -20,7 +20,7 @@ unsigned char coordinates[BMP_WIDTH][BMP_HEIGTH];
 int treshold_value = 100;
 int countedCells = 0;
 int totalErosions = 0;
-double NCCRequirement = 0.295;
+
 /*int structuring_element[3][3] = {
     {0, 1, 0},
     {1, 1, 1},
@@ -40,33 +40,6 @@ int all_neighbours[8][2] = {
     {-1, 1},
     {0, 1},
     {1, 1}};
-
-//pattern recognition element
-//alternative pattern could be less of a circle or 20 by 20
-int ARRAY_CELL_SIZE = 21;
-int cell_pattern[21][21] = {
-    {0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0},
-    {0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0},
-    {0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0},
-    {0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0},
-    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
-    {0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0},
-    {0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0},
-    {0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0},
-    {0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0},
-    {0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0},
-};
 
 void grey_scale_image(unsigned char image[BMP_WIDTH][BMP_HEIGTH], unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS])
 {
@@ -131,7 +104,7 @@ int inside_bounds(int x, int y)
     }
 }
 
-mark_cell(int x, int y)
+void mark_cell(int x, int y)
 {
     coordinates[x][y] = 1;
 
@@ -142,26 +115,68 @@ mark_cell(int x, int y)
     {
         if (inside_bounds(x + neighbours[i][0], y + neighbours[i][1]) == 1)
         {
-            for (int rgb = 0; rgb < 3; rgb++)
+            output_image[x + neighbours[i][0]][y + neighbours[i][1]][0] = 255;
+        }
+    }
+}
+
+//remove the found cell and replaces it with black pixels
+void remove_cell(int x, int y, int given_layer,unsigned char image[BMP_WIDTH][BMP_HEIGTH])
+{
+    for(int x = 0;x<BMP_WIDTH;x++)
+    {
+        for(int y = 0; y<BMP_HEIGTH;y++)
+        {
+            for(int layer = 0;layer<given_layer;given_layer++)
             {
-                output_image[x + neighbours[i][0]][y + neighbours[i][1]][rgb];
+                for(int i = 0; i<8;i++)
+                {
+                    if (inside_bounds(x + all_neighbours[i][0] * layer, y + all_neighbours[i][1] * layer))
+                    {
+                        image[x + all_neighbours[i][0] * layer][y + all_neighbours[i][1] * layer] = 0;
+                    }
+                }
             }
         }
     }
 }
 
-int capture_cells(unsigned char image[BMP_WIDTH][BMP_HEIGTH])
+int find_white_neighbours(unsigned char image[BMP_WIDTH][BMP_HEIGTH], int x, int y)
+{
+    for (int layer = 1; layer <= 12; layer++)
+    {
+        char found = 0;
+        for (int i = 0; i < 8; i++)
+        {
+            if (inside_bounds(x + all_neighbours[i][0] * layer, y + all_neighbours[i][1] * layer) && image[x + all_neighbours[i][0] * layer][y + all_neighbours[i][1] * layer] == 1)
+            {
+                found = 1;
+                break; //tries next layer
+            }
+        }
+        if (found == 0){
+            remove_cell(x,y,layer,image);
+            return layer;
+        }
+    }
+
+    return 0;
+}
+
+void capture_cells(unsigned char image[BMP_WIDTH][BMP_HEIGTH])
 {
     //mark the cell
     for (int x = 0; x < BMP_WIDTH; x++)
     {
         for (int y = 0; y < BMP_HEIGTH; y++)
         {
-            //if requirement is met
-            mark_cell(x, y);
+            if (image[x][y] == 1 && find_white_neighbours(image, x, y) == 0)
+            {
+                mark_cell(x, y);
+                countedCells++;
+            }
         }
     }
-    
 }
 
 //Iterates over the image. If it finds a white pixel, it checks the four neighbours directly above, below, left and right
@@ -194,7 +209,6 @@ void erosion(unsigned char image[BMP_WIDTH][BMP_HEIGTH])
                         //edits image for next iterations
                         nextImage[x][y] = 0;
                         erosionsTics += 1;
-                        countedCells += increment_cell_count(image, x, y);
                     }
                     else
                     {
@@ -226,64 +240,6 @@ void erosion(unsigned char image[BMP_WIDTH][BMP_HEIGTH])
     }
 }
 
-// **** Pattern search start
-double get_templateLength(double templateLength)
-{
-    for (int cellx = 0; cellx < ARRAY_CELL_SIZE; cellx++)
-    {
-        for (int celly = 0; celly < ARRAY_CELL_SIZE; celly++)
-        {
-            templateLength += (cell_pattern[cellx][celly]) ^ 2;
-        }
-    }
-    templateLength = sqrt(templateLength);
-    return templateLength;
-}
-
-double use_pattern(unsigned char image[BMP_WIDTH][BMP_HEIGTH], int x, int y, double templateLength)
-{
-    int sum = 0;
-    double patchLength = 0;
-    for (int cellx = 0; cellx < ARRAY_CELL_SIZE; cellx++)
-    {
-        for (int celly = 0; celly < ARRAY_CELL_SIZE; celly++)
-        {
-            if (inside_bounds(x + cellx, y + celly) && image[x + cellx][y + celly] == 1)
-            {
-                sum += image[x + cellx][y + celly] * cell_pattern[cellx][celly];
-                patchLength += (image[x + cellx][y + celly]) ^ 2;
-            }
-        }
-    }
-    patchLength = sqrt(patchLength);
-
-    double NCC = sum / (patchLength * templateLength);
-    return NCC;
-}
-
-void pattern_search(unsigned char image[BMP_WIDTH][BMP_HEIGTH])
-{
-    double templateLength = 0;
-    templateLength = get_templateLength(templateLength);
-
-    for (int x = 0; x < BMP_WIDTH; x++)
-    {
-        for (int y = 0; y < BMP_HEIGTH; y++)
-        {
-            if (use_pattern(image, x, y, templateLength) > NCCRequirement)
-            {
-                countedCells++;
-
-                //mark it blue for pattern marked
-                output_image[x][y][0] = 0;
-                output_image[x][y][1] = 0;
-                output_image[x][y][2] = 255;
-            }
-        }
-    }
-}
-// *** Pattern serach end
-
 void outputEqualsInput()
 {
     for (int x = 0; x < BMP_WIDTH; x++)
@@ -298,23 +254,24 @@ void outputEqualsInput()
     }
 }
 
-char* get_coordinates()
+char *get_coordinates()
 {
-    char* coordinates_string = "";
+    char *coordinates_string = "";
     for (int x = 0; x < BMP_WIDTH; x++)
     {
         for (int y = 0; y < BMP_HEIGTH; y++)
         {
-            if(coordinates[x][y] == 1)
+            if (coordinates[x][y] == 1)
             {
                 sprintf(coordinates_string, "%s %d", coordinates_string, x);
                 strcat(coordinates_string, ",");
                 sprintf(coordinates_string, "%s %d", coordinates_string, y);
                 strcat(coordinates_string, " ");
-            } 
+            }
         }
         strcat(coordinates_string, "\n");
     }
+    return coordinates_string;
 }
 
 int main(int nPassedArguments, char **args)
@@ -334,17 +291,11 @@ int main(int nPassedArguments, char **args)
     unsigned char grey_image[BMP_WIDTH][BMP_HEIGTH];
     grey_scale_image(grey_image, input_image);
 
-    //pattern_search(grey_image);
-
-    //fprintf(stderr, "Cell count using patterns: %d \n", countedCells);
-
-    countedCells = 0;
-
     binary_threshold(grey_image);
 
     erosion(grey_image);
 
-    image_to_3d(grey_image);
+    //image_to_3d(grey_image);
 
     //set output path by removing .bmp from the input, adding counted cells and .bmp again
     //char **outputPath = "";
@@ -360,7 +311,7 @@ int main(int nPassedArguments, char **args)
 
     fprintf(stderr, "Total erosions: %d \n", totalErosions);
 
-    fprintf(stderr,"Coordinates: \n", get_coordinates);
+    //fprintf(stderr, "Coordinates: \n", get_coordinates);
 
     return 0;
 }
