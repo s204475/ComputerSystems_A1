@@ -58,3 +58,102 @@ else
 Here (x,y) is the position of the pixel being processed.
 
 */
+
+
+
+/*
+  Pattern rego
+*/
+
+/*
+
+double NCCRequirement = 0.295;
+
+//pattern recognition element
+//alternative pattern could be less of a circle or 20 by 20
+int ARRAY_CELL_SIZE = 21;
+int cell_pattern[21][21] = {
+    {0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0},
+    {0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0},
+    {0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0},
+    {0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0},
+    {0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0},
+    {0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0},
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+    {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1},
+    {0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0},
+    {0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0},
+    {0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0},
+    {0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0},
+    {0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0},
+    {0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0},
+};
+
+// **** Pattern search start
+double get_templateLength(double templateLength)
+{
+    for (int cellx = 0; cellx < ARRAY_CELL_SIZE; cellx++)
+    {
+        for (int celly = 0; celly < ARRAY_CELL_SIZE; celly++)
+        {
+            templateLength += (cell_pattern[cellx][celly]) ^ 2;
+        }
+    }
+    templateLength = sqrt(templateLength);
+    return templateLength;
+}
+
+double use_pattern(unsigned char image[BMP_WIDTH][BMP_HEIGTH], int x, int y, double templateLength)
+{
+    int sum = 0;
+    double patchLength = 0;
+    for (int cellx = 0; cellx < ARRAY_CELL_SIZE; cellx++)
+    {
+        for (int celly = 0; celly < ARRAY_CELL_SIZE; celly++)
+        {
+            if (inside_bounds(x + cellx, y + celly) && image[x + cellx][y + celly] == 1)
+            {
+                sum += image[x + cellx][y + celly] * cell_pattern[cellx][celly];
+                patchLength += (image[x + cellx][y + celly]) ^ 2;
+            }
+        }
+    }
+    patchLength = sqrt(patchLength);
+
+    double NCC = sum / (patchLength * templateLength);
+    return NCC;
+}
+
+void pattern_search(unsigned char image[BMP_WIDTH][BMP_HEIGTH])
+{
+    double templateLength = 0;
+    templateLength = get_templateLength(templateLength);
+
+    for (int x = 0; x < BMP_WIDTH; x++)
+    {
+        for (int y = 0; y < BMP_HEIGTH; y++)
+        {
+            if (use_pattern(image, x, y, templateLength) > NCCRequirement)
+            {
+                countedCells++;
+
+                //mark it blue for pattern marked
+                output_image[x][y][0] = 0;
+                output_image[x][y][1] = 0;
+                output_image[x][y][2] = 255;
+            }
+        }
+    }
+}
+// *** Pattern serach end
+
+
+
+*/
