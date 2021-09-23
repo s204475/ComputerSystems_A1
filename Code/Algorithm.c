@@ -5,10 +5,10 @@
 #include "cbmp.h"
 #include <time.h>
 //Wall = warning all
-//To compile: gcc cbmp.c Algorithm.c -o .\Algorithm.exe -std=c99 -Wall
+//To compile: gcc cbmp.c Algorithm.c -o .\Algorithm.exe -std=c99 -Wall -O2
 /*To run: 
 
-.\Algorithm.exe .\samples\easy\5EASY.bmp .\samples\easy\5EASYOutErosionTest.bmp
+.\Algorithm.exe .\samples\easy\1EASY.bmp .\samples\easy\1EASYOutErosionTest.bmp
 
 .\Algorithm.exe .\samples\hard\4HARD.bmp .\samples\hard\4HARDOutErosionTest.bmp
 
@@ -21,14 +21,15 @@ unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
 int countedCells = 0;
 int totalErosions = 0;
 char *string_coordinate;
-struct COORDINATES {
+struct COORDINATES
+{
     unsigned int x;
     unsigned int y;
 };
 
+#define allowedProximity 10
 clock_t start, end;
 double cpu_time_used;
-
 
 struct COORDINATES coordinatesArray[950];
 int nextCor = 0;
@@ -37,7 +38,7 @@ int nextCor = 0;
     {0, 1, 0},
     {1, 1, 1},
     {0, 1, 0}};*/
-int neighbours[4][2] = {
+char neighbours[4][2] = {
     {0, -1},
     {0, 1},
     {-1, 0},
@@ -82,30 +83,7 @@ void binary_threshold(unsigned char image[BMP_WIDTH][BMP_HEIGTH])
     }
 }
 
-//unused right now. Output_image is directly modified in increment cell count
-/*
-void image_to_3d(unsigned char image[BMP_WIDTH][BMP_HEIGTH])
-{
-    for (int x = 0; x < BMP_WIDTH; x++)
-    {
-        for (int y = 0; y < BMP_HEIGTH; y++)
-        {
-            for (int rgb = 0; rgb < 3; rgb++)
-            {
-                if (image[x][y] == 0)
-                {
-                    output_image[x][y][rgb] = 0;
-                }
-                else
-                {
-                    output_image[x][y][rgb] = 255;
-                }
-            }
-        }
-    }
-}
-*/
-int inside_bounds(int x, int y)
+char inside_bounds(int x, int y)
 {
     if (x > BMP_WIDTH - 1 || y > BMP_HEIGTH - 1 || x < 0 || y < 0)
     {
@@ -117,7 +95,8 @@ int inside_bounds(int x, int y)
     }
 }
 
-void add_coordinates__to_array(int x, int y){
+void add_coordinates__to_array(int x, int y)
+{
     coordinatesArray[nextCor].x = x;
     coordinatesArray[nextCor].y = y;
     nextCor++;
@@ -125,50 +104,51 @@ void add_coordinates__to_array(int x, int y){
 
 void print_coordinates()
 {
-    for(int i = 0; i<950;i++)
+    for (int i = 0; i < 950; i++)
     {
-        if(coordinatesArray[i].x == 0 && coordinatesArray[i].y == 0)
+        if (coordinatesArray[i].x == 0 && coordinatesArray[i].y == 0)
         {
             //printf("%d",i);
             return;
-        } else{
-            printf("{%d,%d}\n",coordinatesArray[i].x,coordinatesArray[i].y);
         }
-            
+        else
+        {
+            printf("{%d,%d}\n", coordinatesArray[i].x, coordinatesArray[i].y);
+        }
     }
 }
 
 void mark_cell(int x, int y)
 {
-    add_coordinates__to_array(x,y);
+    add_coordinates__to_array(x, y);
 
-    for (int cross = -8; cross <= 8; cross++)
+    for (char cross = -8; cross <= 8; cross++)
     {
-        for (int thicc = -1; thicc <= 1; thicc++)
+        for (char thicc = -1; thicc <= 1; thicc++)
         {
-            if (inside_bounds(x + cross, y+thicc) == 1)
+            if (inside_bounds(x + cross, y + thicc) == 1)
             {
-                input_image[x + cross][y+thicc][0] = 255;
-                input_image[x + cross][y+thicc][1] = 0;
-                input_image[x + cross][y+thicc][2] = 0;
+                input_image[x + cross][y + thicc][0] = 255;
+                input_image[x + cross][y + thicc][1] = 0;
+                input_image[x + cross][y + thicc][2] = 0;
             }
 
-            if (inside_bounds(x+thicc, y + cross) == 1)
+            if (inside_bounds(x + thicc, y + cross) == 1)
             {
-                input_image[x+thicc][y + cross][0] = 255;
-                input_image[x + thicc][y+cross][1] = 0;
-                input_image[x + thicc][y+cross][2] = 0;
+                input_image[x + thicc][y + cross][0] = 255;
+                input_image[x + thicc][y + cross][1] = 0;
+                input_image[x + thicc][y + cross][2] = 0;
             }
         }
     }
 }
 
 //remove the found cell and replaces it with black pixels
-void remove_cell(int x, int y, int given_layer, unsigned char image[BMP_WIDTH][BMP_HEIGTH])
+void remove_cell(int x, int y, char given_layer, unsigned char image[BMP_WIDTH][BMP_HEIGTH])
 {
-    for (int width = -given_layer; width <= given_layer; width++)
+    for (char width = -given_layer; width <= given_layer; width++)
     {
-        for (int height = -given_layer; height <= given_layer; height++)
+        for (char height = -given_layer; height <= given_layer; height++)
         {
             if (inside_bounds(x + width, y + height))
             {
@@ -178,9 +158,9 @@ void remove_cell(int x, int y, int given_layer, unsigned char image[BMP_WIDTH][B
     }
 }
 
-int check_width(unsigned char image[BMP_WIDTH][BMP_HEIGTH], int x, int y, int currentLayer)
+char check_width(unsigned char image[BMP_WIDTH][BMP_HEIGTH], int x, int y, char currentLayer)
 {
-    for (int width = 0; width < currentLayer; width++)
+    for (char width = 0; width < currentLayer; width++)
     {
 
         if (inside_bounds(x + width, y - currentLayer) && image[x + width][y - currentLayer] == 1)
@@ -197,10 +177,10 @@ int check_width(unsigned char image[BMP_WIDTH][BMP_HEIGTH], int x, int y, int cu
     return 0;
 }
 
-int check_height(unsigned char image[BMP_WIDTH][BMP_HEIGTH], int x, int y, int currentLayer)
+char check_height(unsigned char image[BMP_WIDTH][BMP_HEIGTH], int x, int y, char currentLayer)
 {
 
-    for (int height = 0; height < currentLayer; height++)
+    for (char height = 0; height < currentLayer; height++)
     {
 
         if (inside_bounds(x - currentLayer, y + height) && image[x - currentLayer][y + height] == 1)
@@ -217,14 +197,35 @@ int check_height(unsigned char image[BMP_WIDTH][BMP_HEIGTH], int x, int y, int c
     return 0;
 }
 
-void find_white_neighbours(unsigned char image[BMP_WIDTH][BMP_HEIGTH], int x, int y, int currentLayer)
+int not_too_close(int x, int y)
+{
+
+    return 1;
+    if (nextCor == 0)
+    {
+        return 1;
+    }
+
+    for (int i = 0; i < nextCor; i++)
+    {
+        int distance = (x - coordinatesArray[i].x) * (x - coordinatesArray[i].x) + (y - coordinatesArray[i].y) * (y - coordinatesArray[i].y);
+        if (sqrt(distance) < allowedProximity)
+        {
+            return 0;
+        }
+    }
+
+    return 1;
+}
+
+void find_white_neighbours(unsigned char image[BMP_WIDTH][BMP_HEIGTH], int x, int y, char currentLayer)
 {
     if (currentLayer <= 1)
     {
         return;
     }
 
-    int found = 0;
+    char found = 0;
     found = check_width(image, x, y, currentLayer); //width
     if (found == 0)
     {
@@ -237,10 +238,13 @@ void find_white_neighbours(unsigned char image[BMP_WIDTH][BMP_HEIGTH], int x, in
     }
     else
     {
-        //printf("captured cells");
         remove_cell(x, y, currentLayer, image);
-        mark_cell(x, y);
-        countedCells++;
+
+        if (not_too_close(x, y) == 1) //only marks and counts the cell, if it is more than a few pixels from the last recorded cell
+        {
+            mark_cell(x, y);
+            countedCells++;
+        }
     }
 }
 
@@ -276,7 +280,7 @@ void erosion(unsigned char image[BMP_WIDTH][BMP_HEIGTH])
             {
                 if (image[x][y] == 1)
                 {
-                    int count = 0;
+                    char count = 0;
 
                     for (int i = 0; i < 4; i++)
                     {
@@ -334,8 +338,6 @@ void outputEqualsInput()
 }
 */
 
-
-
 int main(int nPassedArguments, char **args)
 {
     if (nPassedArguments != 3)
@@ -380,7 +382,7 @@ int main(int nPassedArguments, char **args)
     printf("Total erosions: %d \n", totalErosions);
 
     cpu_time_used = end - start;
-    printf("Total time: %f ms\n", cpu_time_used * 1000.0 /CLOCKS_PER_SEC);
+    printf("Total time: %f ms\n", cpu_time_used * 1000.0 / CLOCKS_PER_SEC);
 
     return 0;
 }
