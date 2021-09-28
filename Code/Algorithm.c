@@ -22,8 +22,9 @@
 
 //Array to store the image (unsigned char = unsigned 8 bit)
 unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
-//unsigned char output_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
+
 #define treshold_value 90
+#define REMOVE_CELL_SIZE 6
 int countedCells = 0;
 int totalErosions = 0;
 char *string_coordinate;
@@ -33,11 +34,13 @@ struct COORDINATES
     unsigned int y;
 };
 
+struct COORDINATES coordinatesArray[950];
+
 #define allowedProximity 10
 clock_t start, end;
 double cpu_time_used;
 
-struct COORDINATES coordinatesArray[950];
+
 int nextCor = 0;
 
 /*int structuring_element[3][3] = {
@@ -49,8 +52,6 @@ char neighbours[4][2] = {
     {0, 1},
     {-1, 0},
     {1, 0}};
-
-
 
 void grey_scale_image(unsigned char image[BMP_WIDTH][BMP_HEIGTH], unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS])
 {
@@ -107,7 +108,7 @@ void print_coordinates()
         if (coordinatesArray[i].x == 0 && coordinatesArray[i].y == 0)
         {
             //printf("%d",i);
-            return;
+            //return;
         }
         else
         {
@@ -122,20 +123,20 @@ void mark_cell(int x, int y)
 
     for (char cross = -8; cross <= 8; cross++)
     {
-        for (char thicc = -1; thicc <= 1; thicc++)
+        for (char thickness = -1; thickness <= 1; thickness++)
         {
-            if (inside_bounds(x + cross, y + thicc) == 1)
+            if (inside_bounds(x + cross, y + thickness) == 1)
             {
-                input_image[x + cross][y + thicc][0] = 255;
-                input_image[x + cross][y + thicc][1] = 0;
-                input_image[x + cross][y + thicc][2] = 0;
+                input_image[x + cross][y + thickness][0] = 255;
+                input_image[x + cross][y + thickness][1] = 0;
+                input_image[x + cross][y + thickness][2] = 0;
             }
 
-            if (inside_bounds(x + thicc, y + cross) == 1)
+            if (inside_bounds(x + thickness, y + cross) == 1)
             {
-                input_image[x + thicc][y + cross][0] = 255;
-                input_image[x + thicc][y + cross][1] = 0;
-                input_image[x + thicc][y + cross][2] = 0;
+                input_image[x + thickness][y + cross][0] = 255;
+                input_image[x + thickness][y + cross][1] = 0;
+                input_image[x + thickness][y + cross][2] = 0;
             }
         }
     }
@@ -195,7 +196,7 @@ char check_height(unsigned char image[BMP_WIDTH][BMP_HEIGTH], int x, int y, char
     return 0;
 }
 
-int not_too_close(int x, int y)
+char not_too_close(int x, int y)
 {
     if (nextCor == 0)
     {
@@ -223,6 +224,7 @@ void find_white_neighbours(unsigned char image[BMP_WIDTH][BMP_HEIGTH], int x, in
 
     char found = 0;
     found = check_width(image, x, y, currentLayer); //width
+
     if (found == 0)
     {
         found = check_height(image, x, y, currentLayer); //height
@@ -254,7 +256,7 @@ void capture_cells(unsigned char image[BMP_WIDTH][BMP_HEIGTH])
         {
             if (image[x][y] == 1)
             {
-                find_white_neighbours(image, x, y, 6); //starts marking and removing captured cells
+                find_white_neighbours(image, x, y, REMOVE_CELL_SIZE); //starts marking and removing captured cells
             }
         }
     }
@@ -265,7 +267,7 @@ void capture_cells(unsigned char image[BMP_WIDTH][BMP_HEIGTH])
 void erosion(unsigned char image[BMP_WIDTH][BMP_HEIGTH])
 {
     unsigned char nextImage[BMP_WIDTH][BMP_HEIGTH];
-    int erosionsTics = 1;
+    char erosionsTics = 1;
     while (erosionsTics > 0)
     {
         totalErosions++;
@@ -290,7 +292,7 @@ void erosion(unsigned char image[BMP_WIDTH][BMP_HEIGTH])
                     {
                         //edits image for next iterations
                         nextImage[x][y] = 0;
-                        erosionsTics += 1;
+                        erosionsTics = 1;
                     }
                     else
                     {
@@ -318,11 +320,9 @@ void erosion(unsigned char image[BMP_WIDTH][BMP_HEIGTH])
 }
 
 
-
 /*
     Patterns
 */
-
 
 int grey_cell_pattern[23][23] = {
 	{62, 55, 53, 55, 58, 61, 69, 90, 108, 131, 140, 142, 134, 116, 96, 73, 61, 61, 57, 58, 61, 59, 57}, 
@@ -374,12 +374,8 @@ double get_templateLength(double templateLength)
 
 double use_pattern(unsigned char image[BMP_WIDTH][BMP_HEIGTH], int x, int y, double templateLength)
 {
-
-    
     unsigned int sum = 0;
     double patchLength = 0;
-
-    
 
     for (int cellx = 0; cellx < ARRAY_CELL_SIZE; cellx++)
     {
@@ -435,10 +431,10 @@ void pattern_search(unsigned char image[BMP_WIDTH][BMP_HEIGTH])
     }
 }
 
-
 /*
     Main
 */
+
 int main(int nPassedArguments, char **args)
 {
     if (nPassedArguments != 4)
@@ -447,35 +443,37 @@ int main(int nPassedArguments, char **args)
         exit(1);
     }
 
-    //read file
+    //  read file
     read_bitmap(args[1], input_image);
 
     start = clock();
 
     //outputEqualsInput();
 
-    //greyscale image
+    //  greyscale image
     unsigned char grey_image[BMP_WIDTH][BMP_HEIGTH];
     grey_scale_image(grey_image, input_image);
+
+
+    // Pattern or erosion
 
     if(strcmp(args[3],"p") == 0)
     {
         pattern_search(grey_image);
     } else{
+        //pointer - could be used to optimize
+        //unsigned char (*ptrGreyImage)[BMP_HEIGTH] = grey_image;
+
         binary_threshold(grey_image);
 
         erosion(grey_image);
     }
 
-    
-
-    
-
     end = clock();
 
     //image_to_3d(grey_image);
 
-    //create bmp file
+    //  create bmp file
     write_bitmap(input_image, args[2]);
 
     print_coordinates();
