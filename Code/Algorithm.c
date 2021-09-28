@@ -25,6 +25,7 @@ unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
 
 #define treshold_value 90
 #define REMOVE_CELL_SIZE 6
+
 int countedCells = 0;
 int totalErosions = 0;
 char *string_coordinate;
@@ -36,10 +37,11 @@ struct COORDINATES
 
 struct COORDINATES coordinatesArray[950];
 
-#define allowedProximity 10
+#define allowedProximity 10 //Should have low values for images with many cells on top of one another
+#define neighbourColumn 4
+#define neighbourRow 2
 clock_t start, end;
 double cpu_time_used;
-
 
 int nextCor = 0;
 
@@ -47,7 +49,7 @@ int nextCor = 0;
     {0, 1, 0},
     {1, 1, 1},
     {0, 1, 0}};*/
-char neighbours[4][2] = {
+char neighbours[neighbourColumn][neighbourRow] = {
     {0, -1},
     {0, 1},
     {-1, 0},
@@ -462,7 +464,8 @@ int main(int nPassedArguments, char **args)
         pattern_search(grey_image);
     } else{
         //pointer - could be used to optimize
-        //unsigned char (*ptrGreyImage)[BMP_HEIGTH] = grey_image;
+        //unsigned char(* aPtr)[BMP_WIDTH][BMP_HEIGTH];
+        //aPtr = &grey_image;
 
         binary_threshold(grey_image);
 
