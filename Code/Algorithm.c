@@ -40,8 +40,7 @@ struct COORDINATES coordinatesArray[950];
 #define allowedProximity 10 //Should have low values for images with many cells on top of one another
 #define neighbourColumn 4
 #define neighbourRow 2
-clock_t start, end;
-double cpu_time_used;
+
 
 int nextCor = 0;
 
@@ -326,7 +325,9 @@ void erosion(unsigned char image[BMP_WIDTH][BMP_HEIGTH])
     Patterns
 */
 
-int grey_cell_pattern[23][23] = {
+#define CELL_PATTERN_SIZE 23
+
+int grey_cell_pattern[CELL_PATTERN_SIZE][CELL_PATTERN_SIZE] = {
 	{62, 55, 53, 55, 58, 61, 69, 90, 108, 131, 140, 142, 134, 116, 96, 73, 61, 61, 57, 58, 61, 59, 57}, 
   {60, 55, 58, 63, 76, 95, 115, 134, 163, 186, 198, 201, 192, 176, 142, 111, 88, 68, 62, 61, 59, 60, 60}, 
   {62, 58, 64, 86, 117, 167, 196, 212, 219, 225, 230, 235, 233, 226, 212, 187, 142, 90, 66, 64, 60, 60, 60}, 
@@ -354,7 +355,7 @@ int grey_cell_pattern[23][23] = {
 
 #define ARRAY_CELL_SIZE 23
 
-double NCCRequirement = 0.27;
+#define NCCRequirement = 0.27
 
 double get_templateLength(double templateLength)
 {
@@ -447,6 +448,9 @@ int main(int nPassedArguments, char **args)
 
     //  read file
     read_bitmap(args[1], input_image);
+
+    clock_t start, end;
+    double cpu_time_used;
 
     start = clock();
 

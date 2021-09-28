@@ -8,10 +8,10 @@
             "name": "(Windows) Launch",
             "type": "cppvsdbg",
             "request": "launch",
-            "program": "enter program name, for example ${workspaceFolder}/a.exe",
-            "args": [],
+            "program": "C:/Users/Dreun/OneDrive/Documents/GitHub/ComputerSystems_A1/Code/Algorithm.exe",
+            "args": ["C:/Users/Dreun/OneDrive/Documents/GitHub/ComputerSystems_A1/Code/Algorithm.exe", "C:/Users/Dreun/OneDrive/Documents/GitHub/ComputerSystems_A1/Code/samples/easy/1EASY.bmp", "C:/Users/Dreun/OneDrive/Documents/GitHub/ComputerSystems_A1/Code/samples/easy/1EASY_pattern.bmp"],
             "stopAtEntry": false,
-            "cwd": "${fileDirname}",
+            "cwd": "C:/Users/Dreun/OneDrive/Documents/GitHub/ComputerSystems_A1/Code",
             "environment": [],
             "console": "externalTerminal"
         }
