@@ -1,4 +1,4 @@
-realCell = imread('C:\Users\Dreun\OneDrive\Documents\GitHub\ComputerSystems_A1\Code\samples\easy\1EASYout.bmp');
+realCell = imread('C:\Users\Dreun\OneDrive\Documents\GitHub\ComputerSystems_A1\Code\CellUsed.bmp');
 
 imtool(realCell);
 
@@ -35,3 +35,11 @@ padIm = imbinarize(padCell);
 imshow(padCell);
 
 %1/(8 +12+ 15 +17 +19 +21 +23 +23 +23+ 23+ 23 +23 +23 +22+ 20 +19 +18 +16 +16+ 14+ 10+ 4)
+
+for c = 1:23
+    for r = 1:23
+        V(c,r) = ""+num2str(realCell(c,r))+",";
+    end
+end
+
+mean(V)
