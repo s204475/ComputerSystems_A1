@@ -1,4 +1,4 @@
-#include "pattern.h"
+#include "prototypes.h"
 //#include "variables.h"
 #include <math.h>
 /*
@@ -10,7 +10,7 @@
 #define templateLength3 208.808525
 #define CELL_PATTERN_SIZE 23
 
-int grey_cell_pattern[CELL_PATTERN_SIZE][CELL_PATTERN_SIZE] = {
+unsigned char grey_cell_pattern[CELL_PATTERN_SIZE][CELL_PATTERN_SIZE] = {
     {62, 55, 53, 55, 58, 61, 69, 90, 108, 131, 140, 142, 134, 116, 96, 73, 61, 61, 57, 58, 61, 59, 57},
     {60, 55, 58, 63, 76, 95, 115, 134, 163, 186, 198, 201, 192, 176, 142, 111, 88, 68, 62, 61, 59, 60, 60},
     {62, 58, 64, 86, 117, 167, 196, 212, 219, 225, 230, 235, 233, 226, 212, 187, 142, 90, 66, 64, 60, 60, 60},
@@ -36,7 +36,7 @@ int grey_cell_pattern[CELL_PATTERN_SIZE][CELL_PATTERN_SIZE] = {
     {57, 57, 58, 55, 57, 59, 57, 59, 63, 71, 74, 73, 72, 72, 67, 62, 60, 60, 58, 56, 57, 60, 59},
 };
 
-int grey_cell_pattern2[CELL_PATTERN_SIZE][CELL_PATTERN_SIZE] = {
+unsigned char grey_cell_pattern2[CELL_PATTERN_SIZE][CELL_PATTERN_SIZE] = {
     {18, 13, 10, 8, 10, 11, 15, 16, 9, 12, 19, 19, 20, 15, 16, 15, 18, 16, 17, 14, 13, 15, 23},
     {15, 15, 12, 10, 10, 14, 16, 15, 13, 12, 18, 22, 18, 16, 15, 15, 14, 18, 15, 14, 14, 15, 21},
     {16, 16, 15, 13, 12, 16, 13, 13, 12, 13, 18, 17, 16, 12, 14, 17, 15, 16, 15, 17, 13, 15, 22},
@@ -61,7 +61,7 @@ int grey_cell_pattern2[CELL_PATTERN_SIZE][CELL_PATTERN_SIZE] = {
     {22, 21, 20, 17, 19, 15, 13, 13, 13, 16, 15, 17, 15, 18, 16, 13, 14, 14, 16, 18, 17, 16, 20},
     {19, 19, 13, 12, 14, 16, 16, 16, 19, 19, 16, 14, 17, 15, 17, 13, 12, 12, 15, 15, 13, 15, 18}};
 
-int grey_cell_pattern3[CELL_PATTERN_SIZE][CELL_PATTERN_SIZE] = {
+unsigned char grey_cell_pattern3[CELL_PATTERN_SIZE][CELL_PATTERN_SIZE] = {
     {104, 106, 111, 117, 121, 112, 99, 84, 72, 62, 53, 46, 40, 37, 38, 39, 37, 37, 38, 39, 36, 36, 36},
     {119, 125, 129, 133, 140, 133, 115, 100, 86, 72, 60, 51, 44, 40, 42, 39, 38, 38, 35, 38, 38, 39, 37},
     {135, 141, 149, 153, 153, 148, 131, 117, 98, 84, 73, 59, 50, 42, 44, 42, 38, 35, 33, 35, 40, 41, 40},

@@ -4,8 +4,12 @@
 //Array to store the image (unsigned char = unsigned 8 bit)
 unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
 
+
+
 #define treshold_value 90
-#define REMOVE_CELL_SIZE 6
+#define REMOVE_CELL_SIZE 10
+
+int performanceCheck = 0;
 
 int countedCells = 0;
 int totalErosions = 0;
