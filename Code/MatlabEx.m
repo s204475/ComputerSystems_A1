@@ -1,6 +1,11 @@
-realCell = imread('C:\Users\Dreun\OneDrive\Documents\GitHub\ComputerSystems_A1\Code\CellUsed.bmp');
+%cellUsed = imread('C:\Users\Dreun\OneDrive\Documents\GitHub\ComputerSystems_A1\Code\CellUsed.bmp');
 
-imtool(realCell);
+cellUsed2 = imread('C:\Repositories\02132Assignment1\ComputerSystems_A1\Code\samples\easy\1EASY.bmp');
+
+cellUsed3 = imread('C:\Repositories\02132Assignment1\ComputerSystems_A1\Code\cellused3.bmp');
+
+
+imtool(cellUsed2);
 
 cellAr = [0,0,0,0,0,0,1,1,1,1,1,1,1,1,1,0,0,0,0,0,0;
     0,0,0,0,0,1,1,1,1,1,1,1,1,1,1,1,0,0,0,0,0;
@@ -38,7 +43,7 @@ imshow(padCell);
 
 for c = 1:23
     for r = 1:23
-        V(c,r) = ""+num2str(realCell(c,r))+",";
+        V(c,r) = ""+num2str(cellUsed3(c,r))+",";
     end
 end
 
