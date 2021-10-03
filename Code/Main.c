@@ -8,18 +8,18 @@
 #include "prototypes.h"
 
 //Wall = warning all
-//To compile: gcc cbmp.c pattern.c Algorithm.c -o .\Algorithm.exe -std=c99 -Wall -O2
+//To compile: gcc cbmp.c pattern.c Main.c -o .\CellDetection.exe -std=c99 -Wall -O2
 /*To run: 
 
-.\Algorithm.exe .\samples\easy\1EASY.bmp .\samples\tests\1EASYOutErosionTest.bmp e
+.\CellDetection.exe .\samples\easy\1EASY.bmp .\samples\tests\1EASYOutErosionTest.bmp e
 
-.\Algorithm.exe .\samples\hard\4HARD.bmp .\samples\hard\4HARDOutErosionTest.bmp e
+.\CellDetection.exe .\samples\hard\4HARD.bmp .\samples\hard\4HARDOutErosionTest.bmp e
 
-.\Algorithm.exe .\samples\impossible\1Impossible.bmp .\samples\impossible\1ImpossibleOutErosionTest.bmp e
+.\CellDetection.exe .\samples\impossible\1Impossible.bmp .\samples\impossible\1ImpossibleOutErosionTest.bmp e
 
     If you want pattern search: 
 
-.\Algorithm.exe .\samples\easy\1EASY.bmp .\samples\easy\1EASYOutPattern.bmp p
+.\CellDetection.exe .\samples\easy\1EASY.bmp .\samples\easy\1EASYOutPattern.bmp p
 
 */
 
@@ -79,7 +79,7 @@ char inside_bounds(int x, int y)
     }
 }
 
-void add_coordinates__to_array(int x, int y)
+void add_coordinates_to_array(int x, int y)
 {
     coordinatesArray[nextCor].x = x;
     coordinatesArray[nextCor].y = y;
@@ -104,7 +104,7 @@ void print_coordinates()
 
 void mark_cell(int x, int y)
 {
-    add_coordinates__to_array(x, y);
+    add_coordinates_to_array(x, y);
 
     for (char cross = -8; cross <= 8; cross++)
     {

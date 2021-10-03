@@ -20,6 +20,8 @@ struct COORDINATES
     unsigned int y;
 };
 
+
+
 struct COORDINATES coordinatesArray[950];
 
 #define allowedProximity 10 //Should have low values for images with many cells on top of one another

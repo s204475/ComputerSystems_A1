@@ -5,6 +5,8 @@
 
 /* Prototypes for the functions */
 
+void increment_cell_count();
+
 void grey_scale_image(unsigned char image[BMP_WIDTH][BMP_HEIGTH], unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS]);
 
 void binary_threshold(unsigned char image[BMP_WIDTH][BMP_HEIGTH]);
@@ -13,7 +15,7 @@ char inside_bounds(int x, int y);
 
 void increment_cell_count();
 
-void add_coordinates__to_array(int x, int y);
+void add_coordinates_to_array(int x, int y);
 
 void print_coordinates();
 
@@ -34,6 +36,8 @@ void capture_cells(unsigned char image[BMP_WIDTH][BMP_HEIGTH]);
 /*
     Erosion
 */
+
+void erosion(unsigned char image[BMP_WIDTH][BMP_HEIGTH]);
 
 /*
     Pattern search
