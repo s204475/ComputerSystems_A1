@@ -356,5 +356,7 @@ int main(int nPassedArguments, char **args)
     cpu_time_used = end - start;
     printf("Total time: %f ms\n", cpu_time_used * 1000.0 / CLOCKS_PER_SEC);
 
+    printf("Image: %d, Grey: %d, Coordinates array: %d",sizeof(input_image),sizeof(grey_image),sizeof(coordinatesArray));
+
     return 0;
 }

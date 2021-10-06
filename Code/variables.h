@@ -12,7 +12,7 @@ unsigned char input_image[BMP_WIDTH][BMP_HEIGTH][BMP_CHANNELS];
 int performanceCheck = 0;
 
 int countedCells = 0;
-int totalErosions = 0;
+unsigned char totalErosions = 0;
 char *string_coordinate;
 struct COORDINATES
 {
